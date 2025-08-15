@@ -1,0 +1,35 @@
+name: Release Pipeline
+
+on:
+  push:
+    branches: ['main']
+    tags: ['v*']
+
+jobs:
+  # Build production versions
+  build_android_prod:
+    type: build
+    params:
+      platform: android
+      profile: production
+  build_ios_prod:
+    type: build
+    params:
+      platform: ios
+      profile: production
+  
+  # Submit to stores (only on tag releases)
+  submit_android:
+    type: submit
+    params:
+      platform: android
+      profile: production
+    depends_on:
+      - build_android_prod
+  submit_ios:
+    type: submit
+    params:
+      platform: ios
+      profile: production
+    depends_on:
+      - build_ios_prod

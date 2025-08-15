@@ -1,0 +1,48 @@
+name: Production Deployment
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Setup EAS CLI
+      run: npm install -g eas-cli
+      
+    - name: Login to EAS
+      run: |
+        echo ${{ secrets.EXPO_TOKEN }} | eas login --non-interactive
+      
+    - name: Build Production Android
+      run: eas build --platform android --profile production --non-interactive
+      
+    - name: Build Production iOS
+      run: eas build --platform ios --profile production --non-interactive
+      
+    - name: Submit to Google Play Store
+      if: success()
+      run: eas submit --platform android --profile production --non-interactive
+      
+    - name: Submit to Apple App Store
+      if: success()
+      run: eas submit --platform ios --profile production --non-interactive
+      
+    - name: Deploy to Expo
+      if: success()
+      run: eas update --branch production --message "Production deployment v${{ github.ref_name }}"

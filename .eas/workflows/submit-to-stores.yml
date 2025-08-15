@@ -1,0 +1,13 @@
+name: Submit to App Stores
+
+jobs:
+  submit_android:
+    type: submit
+    params:
+      platform: android
+      profile: production
+  submit_ios:
+    type: submit
+    params:
+      platform: ios
+      profile: production

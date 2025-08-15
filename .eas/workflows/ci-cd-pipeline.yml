@@ -1,0 +1,30 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: ['main']
+
+jobs:
+  # Build for development testing
+  build_android_dev:
+    type: build
+    params:
+      platform: android
+      profile: development
+  build_ios_dev:
+    type: build
+    params:
+      platform: ios
+      profile: development
+  
+  # Build for preview testing
+  build_android_preview:
+    type: build
+    params:
+      platform: android
+      profile: preview
+  build_ios_preview:
+    type: build
+    params:
+      platform: ios
+      profile: preview

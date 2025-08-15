@@ -1,0 +1,13 @@
+name: Development Builds
+
+jobs:
+  build_android_dev:
+    type: build
+    params:
+      platform: android
+      profile: development
+  build_ios_dev:
+    type: build
+    params:
+      platform: ios
+      profile: development

@@ -1,0 +1,127 @@
+name: React Native CI/CD
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Run linting
+      run: npm run lint
+      
+    - name: Run type checking
+      run: npx tsc --noEmit
+
+  build-android:
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Setup EAS CLI
+      run: npm install -g eas-cli
+      
+    - name: Login to EAS
+      run: |
+        echo ${{ secrets.EXPO_TOKEN }} | eas login --non-interactive
+      
+    - name: Build Android APK
+      run: eas build --platform android --profile preview --non-interactive
+      
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: android-build
+        path: |
+          *.apk
+          *.aab
+
+  build-ios:
+    runs-on: macos-latest
+    needs: test
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Setup EAS CLI
+      run: npm install -g eas-cli
+      
+    - name: Login to EAS
+      run: |
+        echo ${{ secrets.EXPO_TOKEN }} | eas login --non-interactive
+      
+    - name: Build iOS IPA
+      run: eas build --platform ios --profile preview --non-interactive
+      
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: ios-build
+        path: |
+          *.ipa
+
+  deploy-preview:
+    runs-on: ubuntu-latest
+    needs: [build-android, build-ios]
+    if: github.ref == 'refs/heads/develop'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Setup EAS CLI
+      run: npm install -g eas-cli
+      
+    - name: Login to EAS
+      run: |
+        echo ${{ secrets.EXPO_TOKEN }} | eas login --non-interactive
+      
+    - name: Deploy to Expo
+      run: eas update --branch preview --message "Preview deployment from GitHub Actions"
