@@ -1,0 +1,9 @@
+name: Fresh Build Test
+
+jobs:
+  build_android_fresh:
+    type: build
+    params:
+      platform: android
+      profile: development
+      clearCache: true

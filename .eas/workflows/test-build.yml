@@ -1,0 +1,8 @@
+name: Test Build Configuration
+
+jobs:
+  test_android:
+    type: build
+    params:
+      platform: android
+      profile: preview
